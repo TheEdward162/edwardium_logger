@@ -3,6 +3,7 @@ name = "edwardium_logger"
 version = "0.1.0"
 authors = ["TheEdward162 <theedward162@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/TheEdward162/edwardium_logger"
 
 [dependencies]
 log = { version = "0.4", features = ["std"] }
