@@ -63,7 +63,7 @@ pub fn init<T: Target + Send + Sync + 'static>(targets: Vec<T>) -> Result<(), Se
 		max
 	};
 
-	eprintln!("Initializing logger with max level of {:?}", max_level);
+	eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
 
 	let logger = Box::new(Logger::new(targets));
 	log::set_boxed_logger(logger)?;
