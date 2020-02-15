@@ -1,6 +1,5 @@
 //! This module contains provided implementations of logging targets.
 
-#[macro_use]
 pub mod util;
 
 #[cfg(feature = "file_target")]

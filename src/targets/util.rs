@@ -1,8 +1,8 @@
-use std::format_args;
 use std::fmt::{Arguments, Display, Error, Formatter};
+use std::format_args;
 use std::time::Duration;
 
-use log::{Record, Level};
+use log::{Level, Record};
 
 pub struct Timestamp {
 	minutes: u64,

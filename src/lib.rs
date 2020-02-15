@@ -24,7 +24,7 @@ pub struct Logger<L, C, T> where
 }
 impl<L, C, T> Logger<L, C, T> where
 	L: target::Target + Send + Sync + 'static,
-	C: AsRef<[L]> + Send + Sync  + 'static,
+	C: AsRef<[L]> + Send + Sync + 'static,
 	T: timing::Timing + Send + Sync + 'static
 {
 	/// Creates a new Logger.
@@ -34,7 +34,7 @@ impl<L, C, T> Logger<L, C, T> where
 		Logger {
 			targets,
 			start,
-			ghost: std::marker::PhantomData
+			ghost: std::marker::PhantomData,
 		}
 	}
 

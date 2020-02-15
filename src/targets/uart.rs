@@ -221,7 +221,7 @@ impl<T: WritableTx> UartTarget<T> {
 			level,
 			sink: Mutex::new(
 				T::new(sink, config)
-			),
+			)
 		}
 	}
 }
@@ -236,7 +236,7 @@ impl<T: WritableTx> Target for UartTarget<T> {
 	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error> {
 		let log_line = super::util::LogLine::new(
 			duration_since_start.into(),
-			record,
+			record
 		);
 
 		let mut lock = self.sink.lock().unwrap();
