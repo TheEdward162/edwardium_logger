@@ -1,6 +1,6 @@
 [package]
 name = "edwardium_logger"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["TheEdward162 <theedward162@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/TheEdward162/edwardium_logger"
@@ -8,7 +8,7 @@ documentation = "https://docs.rs/edwardium_logger"
 homepage = "https://crates.io/crates/edwardium_logger"
 description = "Another simple logger implementation"
 license = "MIT/Apache-2.0"
-keywords = ["logging", "no_std"]
+keywords = ["logging", "no_std", "uart"]
 
 [features]
 default = ["std", "file_target", "stdout_target", "stderr_target"]

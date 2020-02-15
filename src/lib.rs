@@ -1,3 +1,44 @@
+//! Simple logger implementation that works using targets.
+//!
+//! Instead of needing multiple logging crates to log to multiple targets
+//! this crate provides a layer of abstraction and a few default targets.
+//! A target has to implement the [`Target`](target/trait.Target.html) trait.
+//!
+//! This crate also has a `no_std` (disable default features) version and
+//! UART logging target using [`embedded-serial`](https://docs.rs/embedded-serial) is provided
+//! under the `uart_target` feature.
+//!
+//! To start logging, create the [`Logger`](struct.Logger.html) object either statically or dynamically
+//! and then call one of its `init_` methods.
+//!
+//! For example, for a dynamic logger (requires std feature):
+//!
+//! ```
+//! use edwardium_logger::targets::stderr::StderrTarget;
+//! let logger = edwardium_logger::Logger::new(
+//! 	[StderrTarget(log::Level::Trace)],
+//! 	std::time::Instant::now()
+//! );
+//! logger.init_boxed().expect("Could not initialize logger");
+//! ```
+//!
+//! Logger can also be created and set statically, though this has a few caveats (read the documentation of [`Logger::new`](struct.Logger.html#method.new) for more):
+//!
+//! ```
+//! use edwardium_logger::targets::stderr::StderrTarget;
+//! use edwardium_logger::timing::DummyTiming;
+//! static LOGGER: edwardium_logger::Logger<
+//! 	StderrTarget,
+//! 	[StderrTarget; 1],
+//! 	DummyTiming
+//! > = edwardium_logger::Logger {
+//! 	targets: [StderrTarget::new(log::Level::Trace)],
+//! 	start: DummyTiming,
+//! 	ghost: std::marker::PhantomData
+//! };
+//! LOGGER.init_static();
+//! ```
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(not(feature = "std"))]
