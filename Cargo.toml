@@ -1,6 +1,6 @@
 [package]
 name = "edwardium_logger"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["TheEdward162 <theedward162@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/TheEdward162/edwardium_logger"
@@ -11,7 +11,7 @@ license = "MIT/Apache-2.0"
 keywords = ["logging", "no_std", "uart"]
 
 [features]
-default = ["std", "file_target", "stdout_target", "stderr_target"]
+default = ["std", "file_target", "colored_stdout_output", "colored_stderr_output"]
 
 std = ["log/std"]
 
@@ -19,9 +19,15 @@ file_target = ["std"]
 stdout_target = ["std"]
 stderr_target = ["std"]
 
+colored_logline = ["termion"]
+colored_stdout_output = ["stdout_target", "colored_logline"]
+colored_stderr_output = ["stderr_target", "colored_logline"]
+
 uart_target = ["embedded-serial"]
 
 [dependencies]
 log = { version = "0.4" }
 
 embedded-serial = { version = "0.5", optional = true }
+
+termion = { version = "1", optional = true }

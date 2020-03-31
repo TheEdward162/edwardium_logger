@@ -1,8 +1,17 @@
-use std::fmt::{Error, Write};
-use std::sync::Mutex;
-use std::time::Duration;
+use std::{
+	fmt::{Error, Write},
+	sync::Mutex,
+	time::Duration
+};
 
-use embedded_serial::{ImmutBlockingTx, ImmutBlockingTxWithTimeout, ImmutNonBlockingTx, MutBlockingTx, MutBlockingTxWithTimeout, MutNonBlockingTx};
+use embedded_serial::{
+	ImmutBlockingTx,
+	ImmutBlockingTxWithTimeout,
+	ImmutNonBlockingTx,
+	MutBlockingTx,
+	MutBlockingTxWithTimeout,
+	MutNonBlockingTx
+};
 use log::{Level, Record};
 
 use crate::target::Target;
@@ -16,7 +25,9 @@ pub trait WritableTx: Write {
 	/// Can be used to pass and store additional data.
 	type Data;
 
-	fn new(sink: Self::Type, data: Self::Data) -> Self where Self: Sized;
+	fn new(sink: Self::Type, data: Self::Data) -> Self
+	where
+		Self: Sized;
 }
 
 macro_rules! impl_writable_tx_wrap {
@@ -209,35 +220,22 @@ impl_writable_tx_wrap! {
 
 pub struct UartTarget<T: WritableTx> {
 	level: Level,
-	sink: Mutex<T>,
+	sink: Mutex<T>
 }
 impl<T: WritableTx> UartTarget<T> {
-	pub fn new(
-		level: Level,
-		sink: T::Type,
-		config: T::Data
-	) -> Self {
-		UartTarget {
-			level,
-			sink: Mutex::new(
-				T::new(sink, config)
-			)
-		}
+	pub fn new(level: Level, sink: T::Type, config: T::Data) -> Self {
+		UartTarget { level, sink: Mutex::new(T::new(sink, config)) }
 	}
 }
 impl<T: WritableTx> Target for UartTarget<T> {
 	type Error = Error;
+
 	// TODO: fmt::Formatter is currently designed such that it's not possible to propagate io errors back to the caller
 
-	fn level(&self) -> Level {
-		self.level
-	}
+	fn level(&self) -> Level { self.level }
 
 	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error> {
-		let log_line = super::util::LogLine::new(
-			duration_since_start.into(),
-			record
-		);
+		let log_line = super::util::LogLine::new(duration_since_start.into(), record);
 
 		let mut lock = self.sink.lock().unwrap();
 		writeln!(&mut lock, "{}", log_line)

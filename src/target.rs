@@ -16,9 +16,7 @@ pub trait Target {
 	/// Whether the target wants to ignore given record.
 	///
 	/// This method is called before `write` to filter output.
-	fn ignore(&self, _record: &Record) -> bool {
-		false
-	}
+	fn ignore(&self, _record: &Record) -> bool { false }
 
 	/// Writes record to the target output.
 	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error>;

@@ -1,7 +1,9 @@
 /// Trait used to implement custom timing in `no_std` crates where `std::time::Instant` is not available.
 pub trait Timing {
 	/// Returns a new reference point in time.
-	fn now() -> Self where Self: Sized;
+	fn now() -> Self
+	where
+		Self: Sized;
 
 	/// Returns duration between two points in time.
 	fn duration_since(&self, other: &Self) -> std::time::Duration;
@@ -12,24 +14,16 @@ pub trait Timing {
 /// Can be used for development or when no monotonic clock exists or is desired.
 pub struct DummyTiming;
 impl Timing for DummyTiming {
-	fn now() -> Self {
-		DummyTiming
-	}
+	fn now() -> Self { DummyTiming }
 
-	fn duration_since(&self, _: &Self) -> std::time::Duration {
-		std::time::Duration::new(0, 0)
-	}
+	fn duration_since(&self, _: &Self) -> std::time::Duration { std::time::Duration::new(0, 0) }
 }
 
 #[cfg(feature = "std")]
 impl Timing for std::time::Instant {
-	fn now() -> Self {
-		std::time::Instant::now()
-	}
+	fn now() -> Self { std::time::Instant::now() }
 
-	fn duration_since(&self, other: &Self) -> std::time::Duration {
-		self.duration_since(*other)
-	}
+	fn duration_since(&self, other: &Self) -> std::time::Duration { self.duration_since(*other) }
 }
 
 /* YOLO
