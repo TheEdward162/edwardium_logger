@@ -25,8 +25,10 @@
 //! Logger can also be created and set statically, though this has a few caveats (read the documentation of [`Logger::new`](struct.Logger.html#method.new) for more):
 //!
 //! ```
-//! use edwardium_logger::targets::stderr::StderrTarget;
-//! use edwardium_logger::timing::DummyTiming;
+//! use edwardium_logger::{
+//! 	targets::stderr::StderrTarget,
+//! 	timing::DummyTiming
+//! };
 //! static LOGGER: edwardium_logger::Logger<
 //! 	StderrTarget,
 //! 	[StderrTarget; 1],
@@ -44,7 +46,7 @@
 #[cfg(not(feature = "std"))]
 use core as std;
 
-use log::{LevelFilter, Log, Metadata, Record, SetLoggerError};
+use log::{Log, Metadata, Record, SetLoggerError};
 
 pub mod target;
 pub mod timing;
@@ -54,55 +56,42 @@ pub mod targets;
 /// Logger
 ///
 /// TODO: The fields of this struct are public only because generics on const fns are unstable.
-pub struct Logger<L, C, T>
+pub struct Logger<Targ, Time>
 where
-	L: target::Target + Send + Sync + 'static,
-	C: AsRef<[L]> + Send + Sync + 'static,
-	T: timing::Timing + Send + Sync + 'static
+	Targ: target::Targets + Send + Sync + 'static,
+	Time: timing::Timing + Send + Sync + 'static
 {
-	pub targets: C,
-	pub start: T,
-	pub ghost: std::marker::PhantomData<L>
+	pub targets: Targ,
+	pub start: Time
 }
-impl<L, C, T> Logger<L, C, T>
+impl<Targ, Time> Logger<Targ, Time>
 where
-	L: target::Target + Send + Sync + 'static,
-	C: AsRef<[L]> + Send + Sync + 'static,
-	T: timing::Timing + Send + Sync + 'static
+	Targ: target::Targets + Send + Sync + 'static,
+	Time: timing::Timing + Send + Sync + 'static
 {
 	/// Creates a new Logger.
 	///
 	/// TODO: This function should be `const` but that is unstable with generic parameters, thus the fields of the logger are made public instead.
-	pub fn new(targets: C, start: T) -> Self {
-		Logger { targets, start, ghost: std::marker::PhantomData }
+	pub fn new(targets: Targ, start: Time) -> Self {
+		Logger { targets, start }
 	}
 
 	/// Returns a reference to the `start` field.
-	pub fn start(&self) -> &T { &self.start }
+	pub fn start(&self) -> &Time {
+		&self.start
+	}
 
 	/// Returns a mutable reference to the `start` field.
 	///
 	/// This can be used to have a `static mut` logger and change the `start` at the beginning of the program.
-	pub fn start_mut(&mut self) -> &mut T { &mut self.start }
-
-	fn targets_max_level(&self) -> LevelFilter {
-		self.targets.as_ref().iter().fold(LevelFilter::Off, |max, target| {
-			if target.level() > max {
-				target.level().to_level_filter()
-			} else {
-				max
-			}
-		})
+	pub fn start_mut(&mut self) -> &mut Time {
+		&mut self.start
 	}
 
 	#[cfg(feature = "std")]
 	pub fn init_boxed(self) -> Result<(), SetLoggerError> {
-		let max_level = self.targets_max_level();
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
+		let max_level = self.targets.max_level();
+		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
 		log::set_max_level(max_level);
 
 		let logger = Box::new(self);
@@ -112,27 +101,21 @@ where
 
 	// TODO: On thumbv6 this won't compile
 	pub fn init_static(&'static self) -> Result<(), SetLoggerError> {
-		let max_level = self.targets_max_level();
+		let max_level = self.targets.max_level();
 		#[cfg(feature = "std")]
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
+		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
 		log::set_max_level(max_level);
 
 		log::set_logger(self)?;
 		Ok(())
 	}
 
-	pub unsafe fn init_static_racy(&'static self) -> Result<(), SetLoggerError> {
-		let max_level = self.targets_max_level();
+	pub unsafe fn init_static_racy(
+		&'static self
+	) -> Result<(), SetLoggerError> {
+		let max_level = self.targets.max_level();
 		#[cfg(feature = "std")]
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
+		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
 		log::set_max_level(max_level);
 
 		log::set_logger_racy(self)?;
@@ -140,45 +123,36 @@ where
 	}
 
 	#[cfg(feature = "std")]
-	fn on_error(&self, error: L::Error) {
+	fn on_error(&self, error: &dyn std::fmt::Display) {
 		eprintln!("{}", error);
 	}
 
 	#[cfg(not(feature = "std"))]
-	fn on_error(&self, error: L::Error) {
-		// Nothing to do
+	fn on_error(&self, error: &dyn core::fmt::Display) {
+		// Nothing to do?
 	}
 }
-impl<L, C, T> Log for Logger<L, C, T>
+impl<Targ, Time> Log for Logger<Targ, Time>
 where
-	L: target::Target + Send + Sync,
-	C: AsRef<[L]> + Send + Sync,
-	T: timing::Timing + Send + Sync
+	Targ: target::Targets + Send + Sync + 'static,
+	Time: timing::Timing + Send + Sync + 'static
 {
 	fn enabled(&self, metadata: &Metadata) -> bool {
-		self.targets.as_ref().iter().any(|target| target.level() >= metadata.level())
+		self.targets.max_level() >= metadata.level()
 	}
 
 	fn log(&self, record: &Record) {
-		let now = T::now();
+		let now = Time::now();
 		let duration_since_start = now.duration_since(&self.start);
 
-		for target in self.targets.as_ref().iter() {
-			if !target.ignore(record) {
-				match target.write(duration_since_start, record) {
-					Err(e) => self.on_error(e),
-					Ok(_) => ()
-				}
-			}
-		}
+		let callback =
+			|err: &dyn core::fmt::Display| self.on_error(err);
+		self.targets.write(duration_since_start, record, &callback)
 	}
 
 	fn flush(&self) {
-		for target in self.targets.as_ref().iter() {
-			match target.flush() {
-				Err(e) => self.on_error(e),
-				Ok(_) => ()
-			}
-		}
+		let callback =
+			|err: &dyn core::fmt::Display| self.on_error(err);
+		self.targets.flush(&callback)
 	}
 }

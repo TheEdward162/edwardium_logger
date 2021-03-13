@@ -11,8 +11,16 @@ pub struct Timestamp {
 	millis: u32
 }
 impl Timestamp {
-	pub const fn new(minutes: u64, seconds: u64, millis: u32) -> Self {
-		Timestamp { minutes, seconds, millis }
+	pub const fn new(
+		minutes: u64,
+		seconds: u64,
+		millis: u32
+	) -> Self {
+		Timestamp {
+			minutes,
+			seconds,
+			millis
+		}
 	}
 }
 impl From<Duration> for Timestamp {
@@ -26,7 +34,11 @@ impl From<Duration> for Timestamp {
 }
 impl Display for Timestamp {
 	fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-		write!(f, "+{:0>3}:{:0>2}.{:0>4}", self.minutes, self.seconds, self.millis)
+		write!(
+			f,
+			"+{:0>3}:{:0>2}.{:0>4}",
+			self.minutes, self.seconds, self.millis
+		)
 	}
 }
 
@@ -38,12 +50,44 @@ pub struct LogLine<'r> {
 }
 impl<'r> LogLine<'r> {
 	pub fn new(timestamp: Timestamp, record: &'r Record<'r>) -> Self {
-		LogLine { timestamp, level: record.level(), target: record.target(), args: record.args() }
+		LogLine {
+			timestamp,
+			level: record.level(),
+			target: record.target(),
+			args: record.args()
+		}
 	}
 }
 impl<'r> Display for LogLine<'r> {
 	fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-		write!(f, "[{}][{}] ({}) {}", self.timestamp, self.level, self.target, self.args)
+		write!(
+			f,
+			"[{}][{}] ({}) {}",
+			self.timestamp, self.level, self.target, self.args
+		)
+	}
+}
+
+pub mod ignore_list {
+	use log::Record;
+	use std::borrow::Cow;
+
+	pub type IgnoreListPatterns<'a> = Cow<'a, [Cow<'a, str>]>;
+
+	#[derive(Debug, Default)]
+	pub struct IgnoreList<'a> {
+		patterns: IgnoreListPatterns<'a>
+	}
+	impl<'a> IgnoreList<'a> {
+		pub const fn new(patterns: IgnoreListPatterns<'a>) -> Self {
+			IgnoreList { patterns }
+		}
+
+		pub fn ignore(&self, record: &Record) -> bool {
+			self.patterns
+				.iter()
+				.any(|p| record.target().contains(p.as_ref()))
+		}
 	}
 }
 
@@ -64,7 +108,10 @@ pub mod colored_logline {
 		args: &'r Arguments<'r>
 	}
 	impl<'r> ColoredLogLine<'r> {
-		pub fn new(timestamp: Timestamp, record: &'r Record<'r>) -> Self {
+		pub fn new(
+			timestamp: Timestamp,
+			record: &'r Record<'r>
+		) -> Self {
 			ColoredLogLine {
 				timestamp,
 				level: record.level(),
@@ -78,7 +125,10 @@ pub mod colored_logline {
 			#[derive(Debug)]
 			struct ApiDesignIsHard(Level);
 			impl termion::color::Color for ApiDesignIsHard {
-				fn write_fg(&self, f: &mut Formatter) -> Result<(), Error> {
+				fn write_fg(
+					&self,
+					f: &mut Formatter
+				) -> Result<(), Error> {
 					match self.0 {
 						Level::Error => color::Red.write_fg(f),
 						Level::Warn => color::Magenta.write_fg(f),
@@ -88,7 +138,12 @@ pub mod colored_logline {
 					}
 				}
 
-				fn write_bg(&self, _: &mut Formatter) -> Result<(), Error> { unimplemented!() }
+				fn write_bg(
+					&self,
+					_: &mut Formatter
+				) -> Result<(), Error> {
+					unimplemented!()
+				}
 			}
 
 			write!(

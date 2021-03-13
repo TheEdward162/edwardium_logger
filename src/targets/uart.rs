@@ -224,7 +224,10 @@ pub struct UartTarget<T: WritableTx> {
 }
 impl<T: WritableTx> UartTarget<T> {
 	pub fn new(level: Level, sink: T::Type, config: T::Data) -> Self {
-		UartTarget { level, sink: Mutex::new(T::new(sink, config)) }
+		UartTarget {
+			level,
+			sink: Mutex::new(T::new(sink, config))
+		}
 	}
 }
 impl<T: WritableTx> Target for UartTarget<T> {
@@ -232,10 +235,19 @@ impl<T: WritableTx> Target for UartTarget<T> {
 
 	// TODO: fmt::Formatter is currently designed such that it's not possible to propagate io errors back to the caller
 
-	fn level(&self) -> Level { self.level }
+	fn level(&self) -> Level {
+		self.level
+	}
 
-	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error> {
-		let log_line = super::util::LogLine::new(duration_since_start.into(), record);
+	fn write(
+		&self,
+		duration_since_start: Duration,
+		record: &Record
+	) -> Result<(), Self::Error> {
+		let log_line = super::util::LogLine::new(
+			duration_since_start.into(),
+			record
+		);
 
 		let mut lock = self.sink.lock().unwrap();
 		writeln!(&mut lock, "{}", log_line)

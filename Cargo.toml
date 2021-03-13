@@ -11,7 +11,7 @@ license = "MIT/Apache-2.0"
 keywords = ["logging", "no_std", "uart"]
 
 [features]
-default = ["std", "file_target", "colored_stdout_output", "colored_stderr_output"]
+default = ["std", "ignore_list", "file_target", "colored_stdout_output", "colored_stderr_output"]
 
 std = ["log/std"]
 
@@ -22,6 +22,8 @@ stderr_target = ["std"]
 colored_logline = ["termion"]
 colored_stdout_output = ["stdout_target", "colored_logline"]
 colored_stderr_output = ["stderr_target", "colored_logline"]
+
+ignore_list = ["std"]
 
 uart_target = ["embedded-serial"]
 
