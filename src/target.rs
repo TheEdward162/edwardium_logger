@@ -61,9 +61,11 @@ impl<T: Target> Targets for T {
 		record: &Record,
 		error_cb: &dyn Fn(&dyn core::fmt::Display)
 	) {
-		match Target::write(self, duration_since_start, record) {
-			Ok(_) => (),
-			Err(err) => error_cb(&err)
+		if !Target::ignore(self, record) {
+			match Target::write(self, duration_since_start, record) {
+				Ok(_) => (),
+				Err(err) => error_cb(&err)
+			}
 		}
 	}
 
