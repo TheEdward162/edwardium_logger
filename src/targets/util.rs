@@ -79,6 +79,8 @@ pub mod ignore_list {
 		patterns: IgnoreListPatterns<'a>
 	}
 	impl<'a> IgnoreList<'a> {
+		pub const EMPTY_PATTERNS: IgnoreListPatterns<'static> = Cow::Borrowed(&[]);
+
 		pub const fn new(patterns: IgnoreListPatterns<'a>) -> Self {
 			IgnoreList { patterns }
 		}

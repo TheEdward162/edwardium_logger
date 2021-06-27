@@ -4,10 +4,6 @@
 //! this crate provides a layer of abstraction and a few default targets.
 //! A target has to implement the [`Target`](target/trait.Target.html) trait.
 //!
-//! This crate also has a `no_std` (disable default features) version and
-//! UART logging target using [`embedded-serial`](https://docs.rs/embedded-serial) is provided
-//! under the `uart_target` feature.
-//!
 //! To start logging, create the [`Logger`](struct.Logger.html) object either statically or dynamically
 //! and then call one of its `init_` methods.
 //!
@@ -16,7 +12,7 @@
 //! ```
 //! use edwardium_logger::targets::stderr::StderrTarget;
 //! let logger = edwardium_logger::Logger::new(
-//! 	[StderrTarget(log::Level::Trace)],
+//! 	StderrTarget::new(log::Level::Trace, Default::default()),
 //! 	std::time::Instant::now()
 //! );
 //! logger.init_boxed().expect("Could not initialize logger");
@@ -26,20 +22,26 @@
 //!
 //! ```
 //! use edwardium_logger::{
-//! 	targets::stderr::StderrTarget,
+//! 	targets::{
+//! 		stderr::StderrTarget,
+//! 		util::ignore_list::IgnoreList
+//! 	},
 //! 	timing::DummyTiming
 //! };
 //! static LOGGER: edwardium_logger::Logger<
-//! 	StderrTarget,
-//! 	[StderrTarget; 1],
+//! 	(StderrTarget),
 //! 	DummyTiming
 //! > = edwardium_logger::Logger {
-//! 	targets: [StderrTarget::new(log::Level::Trace)],
-//! 	start: DummyTiming,
-//! 	ghost: std::marker::PhantomData
+//! 	targets: StderrTarget::new(log::Level::Trace, IgnoreList::EMPTY_PATTERNS),
+//! 	start: DummyTiming
 //! };
 //! LOGGER.init_static();
 //! ```
+
+// TODO: Not really tested
+// This crate also has a `no_std` (disable default features) version and
+// UART logging target using [`embedded-serial`](https://docs.rs/embedded-serial) is provided
+// under the `uart_target` feature.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -52,6 +54,8 @@ pub mod target;
 pub mod timing;
 
 pub mod targets;
+
+use target::TargetResults;
 
 /// Logger
 ///
@@ -145,14 +149,16 @@ where
 		let now = Time::now();
 		let duration_since_start = now.duration_since(&self.start);
 
-		let callback =
-			|err: &dyn core::fmt::Display| self.on_error(err);
-		self.targets.write(duration_since_start, record, &callback)
+		let results = self.targets.write(duration_since_start, record);
+		results.log_errors(
+			|err| self.on_error(err)
+		);
 	}
 
 	fn flush(&self) {
-		let callback =
-			|err: &dyn core::fmt::Display| self.on_error(err);
-		self.targets.flush(&callback)
+		let results = self.targets.flush();
+		results.log_errors(
+			|err| self.on_error(err)
+		);
 	}
 }

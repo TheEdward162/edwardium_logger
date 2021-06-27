@@ -32,25 +32,24 @@ pub trait Target {
 }
 
 pub trait Targets {
+	type Results: TargetResults;
+
 	/// Returns the max level any of the target logs to.
 	fn max_level(&self) -> LevelFilter;
 
 	/// Writes record to the target outputs.
-	///
-	/// Calls `error_cb` for each error.
 	fn write(
 		&self,
 		duration_since_start: Duration,
-		record: &Record,
-		error_cb: &dyn Fn(&dyn core::fmt::Display)
-	);
+		record: &Record
+	) -> Self::Results;
 
 	/// Flushes target outputs.
-	///
-	/// Calls `error_cb` for each error.
-	fn flush(&self, error_cb: &dyn Fn(&dyn core::fmt::Display));
+	fn flush(&self) -> Self::Results;
 }
 impl<T: Target> Targets for T {
+	type Results = Result<(), T::Error>;
+
 	fn max_level(&self) -> LevelFilter {
 		Target::level(self).to_level_filter()
 	}
@@ -58,32 +57,46 @@ impl<T: Target> Targets for T {
 	fn write(
 		&self,
 		duration_since_start: Duration,
-		record: &Record,
-		error_cb: &dyn Fn(&dyn core::fmt::Display)
-	) {
+		record: &Record
+	) -> Self::Results {
 		if !Target::ignore(self, record) {
-			match Target::write(self, duration_since_start, record) {
-				Ok(_) => (),
-				Err(err) => error_cb(&err)
-			}
+			Target::write(self, duration_since_start, record)
+		} else {
+			Ok(())
 		}
 	}
 
-	fn flush(&self, error_cb: &dyn Fn(&dyn core::fmt::Display)) {
-		match Target::flush(self) {
-			Ok(_) => (),
-			Err(err) => error_cb(&err)
+	fn flush(&self) -> Self::Results {
+		Target::flush(self)
+	}
+}
+
+pub trait TargetResults {
+	// TODO: find better api?
+	fn log_errors(&self, cb: impl FnMut(&dyn core::fmt::Display));
+}
+impl<E: core::fmt::Display> TargetResults for Result<(), E> {
+	fn log_errors(&self, mut cb: impl FnMut(&dyn core::fmt::Display)) {
+		match self {
+			Ok(()) => (),
+			Err(ref err) => cb(&err)
 		}
 	}
 }
 
-macro_rules! impl_targets_for_tuple {
+macro_rules! impl_for_tuple {
 	(
 		$(
 			$gen_name: ident: $gen_num: tt
 		),+
 	) => {
 		impl<$($gen_name: Target),+> Targets for ($($gen_name,)+) {
+			type Results = (
+				$(
+					Result<(), $gen_name::Error>,
+				)+
+			);
+
 			fn max_level(&self) -> LevelFilter {
 				let max = LevelFilter::Off;
 
@@ -99,27 +112,34 @@ macro_rules! impl_targets_for_tuple {
 			fn write(
 				&self,
 				duration_since_start: Duration,
-				record: &Record,
-				error_cb: &dyn Fn(&dyn core::fmt::Display)
-			) {
-				$(
-					if !self.$gen_num.ignore(record) {
-						match self.$gen_num.write(
-							duration_since_start,
-							record
-						) {
-							Ok(()) => (),
-							Err(err) => { error_cb(&err); }
-						}
-					}
-				)+
+				record: &Record
+			) -> Self::Results {
+				(
+					$(
+						if !self.$gen_num.ignore(record) {
+							self.$gen_num.write(duration_since_start, record)
+						} else {
+							Ok(())
+						},
+					)+
+				)
 			}
 
-			fn flush(&self, error_cb: &dyn Fn(&dyn core::fmt::Display)) {
+			fn flush(&self) -> Self::Results {
+				(
+					$(
+						self.$gen_num.flush(),
+					)+
+				)
+			}
+		}
+
+		impl<$($gen_name: core::fmt::Display),+> TargetResults for ($(Result<(), $gen_name>,)+) {
+			fn log_errors(&self, mut cb: impl FnMut(&dyn core::fmt::Display)) {
 				$(
-					match self.$gen_num.flush() {
+					match self.$gen_num {
 						Ok(()) => (),
-						Err(err) => { error_cb(&err); }
+						Err(ref err) => cb(&err)
 					}
 				)+
 			}
@@ -127,11 +147,11 @@ macro_rules! impl_targets_for_tuple {
 	}
 }
 
-impl_targets_for_tuple!(A:0);
-impl_targets_for_tuple!(A:0, B:1);
-impl_targets_for_tuple!(A:0, B:1, C:2);
-impl_targets_for_tuple!(A:0, B:1, C:2, D:3);
-impl_targets_for_tuple!(A:0, B:1, C:2, D:3, E:4);
-impl_targets_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5);
-impl_targets_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5, G:6);
-impl_targets_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5, G:6, H:7);
+impl_for_tuple!(A:0);
+impl_for_tuple!(A:0, B:1);
+impl_for_tuple!(A:0, B:1, C:2);
+impl_for_tuple!(A:0, B:1, C:2, D:3);
+impl_for_tuple!(A:0, B:1, C:2, D:3, E:4);
+impl_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5);
+impl_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5, G:6);
+impl_for_tuple!(A:0, B:1, C:2, D:3, E:4, F:5, G:6, H:7);
