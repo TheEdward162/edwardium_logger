@@ -11,11 +11,7 @@ pub struct Timestamp {
 	millis: u32
 }
 impl Timestamp {
-	pub const fn new(
-		minutes: u64,
-		seconds: u64,
-		millis: u32
-	) -> Self {
+	pub const fn new(minutes: u64, seconds: u64, millis: u32) -> Self {
 		Timestamp {
 			minutes,
 			seconds,
@@ -110,10 +106,7 @@ pub mod colored_logline {
 		args: &'r Arguments<'r>
 	}
 	impl<'r> ColoredLogLine<'r> {
-		pub fn new(
-			timestamp: Timestamp,
-			record: &'r Record<'r>
-		) -> Self {
+		pub fn new(timestamp: Timestamp, record: &'r Record<'r>) -> Self {
 			ColoredLogLine {
 				timestamp,
 				level: record.level(),
@@ -127,10 +120,7 @@ pub mod colored_logline {
 			#[derive(Debug)]
 			struct ApiDesignIsHard(Level);
 			impl termion::color::Color for ApiDesignIsHard {
-				fn write_fg(
-					&self,
-					f: &mut Formatter
-				) -> Result<(), Error> {
+				fn write_fg(&self, f: &mut Formatter) -> Result<(), Error> {
 					match self.0 {
 						Level::Error => color::Red.write_fg(f),
 						Level::Warn => color::Magenta.write_fg(f),
@@ -140,10 +130,7 @@ pub mod colored_logline {
 					}
 				}
 
-				fn write_bg(
-					&self,
-					_: &mut Formatter
-				) -> Result<(), Error> {
+				fn write_bg(&self, _: &mut Formatter) -> Result<(), Error> {
 					unimplemented!()
 				}
 			}

@@ -239,15 +239,8 @@ impl<T: WritableTx> Target for UartTarget<T> {
 		self.level
 	}
 
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> Result<(), Self::Error> {
-		let log_line = super::util::LogLine::new(
-			duration_since_start.into(),
-			record
-		);
+	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error> {
+		let log_line = super::util::LogLine::new(duration_since_start.into(), record);
 
 		let mut lock = self.sink.lock().unwrap();
 		writeln!(&mut lock, "{}", log_line)

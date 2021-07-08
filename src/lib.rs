@@ -22,19 +22,14 @@
 //!
 //! ```
 //! use edwardium_logger::{
-//! 	targets::{
-//! 		stderr::StderrTarget,
-//! 		util::ignore_list::IgnoreList
-//! 	},
+//! 	targets::{stderr::StderrTarget, util::ignore_list::IgnoreList},
 //! 	timing::DummyTiming
 //! };
-//! static LOGGER: edwardium_logger::Logger<
-//! 	(StderrTarget),
-//! 	DummyTiming
-//! > = edwardium_logger::Logger {
-//! 	targets: StderrTarget::new(log::Level::Trace, IgnoreList::EMPTY_PATTERNS),
-//! 	start: DummyTiming
-//! };
+//! static LOGGER: edwardium_logger::Logger<(StderrTarget), DummyTiming> =
+//! 	edwardium_logger::Logger {
+//! 		targets: StderrTarget::new(log::Level::Trace, IgnoreList::EMPTY_PATTERNS),
+//! 		start: DummyTiming
+//! 	};
 //! LOGGER.init_static();
 //! ```
 
@@ -95,7 +90,11 @@ where
 	#[cfg(feature = "std")]
 	pub fn init_boxed(self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
-		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
+		eprintln!(
+			"Initializing logger with max level of {:?} (static max level: {:?})",
+			max_level,
+			log::STATIC_MAX_LEVEL
+		);
 		log::set_max_level(max_level);
 
 		let logger = Box::new(self);
@@ -107,19 +106,25 @@ where
 	pub fn init_static(&'static self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
 		#[cfg(feature = "std")]
-		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
+		eprintln!(
+			"Initializing logger with max level of {:?} (static max level: {:?})",
+			max_level,
+			log::STATIC_MAX_LEVEL
+		);
 		log::set_max_level(max_level);
 
 		log::set_logger(self)?;
 		Ok(())
 	}
 
-	pub unsafe fn init_static_racy(
-		&'static self
-	) -> Result<(), SetLoggerError> {
+	pub unsafe fn init_static_racy(&'static self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
 		#[cfg(feature = "std")]
-		eprintln!("Initializing logger with max level of {:?} (static max level: {:?})", max_level, log::STATIC_MAX_LEVEL);
+		eprintln!(
+			"Initializing logger with max level of {:?} (static max level: {:?})",
+			max_level,
+			log::STATIC_MAX_LEVEL
+		);
 		log::set_max_level(max_level);
 
 		log::set_logger_racy(self)?;
@@ -150,15 +155,11 @@ where
 		let duration_since_start = now.duration_since(&self.start);
 
 		let results = self.targets.write(duration_since_start, record);
-		results.log_errors(
-			|err| self.on_error(err)
-		);
+		results.log_errors(|err| self.on_error(err));
 	}
 
 	fn flush(&self) {
 		let results = self.targets.flush();
-		results.log_errors(
-			|err| self.on_error(err)
-		);
+		results.log_errors(|err| self.on_error(err));
 	}
 }

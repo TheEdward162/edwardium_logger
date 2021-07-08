@@ -45,11 +45,9 @@ impl Timing for std::time::Instant {
 // 	[edwardium_logger::targets::stderr::StderrTarget; 1],
 // 	Option<std::time::Instant>
 // > = edwardium_logger::Logger {
-// 	targets: [
-// 		edwardium_logger::targets::stderr::StderrTarget::new(
-// 			log::Level::Trace
-// 		)
-// 	],
+// 	targets: [edwardium_logger::targets::stderr::StderrTarget::new(
+// 		log::Level::Trace
+// 	)],
 // 	start: None,
 // 	ghost: std::marker::PhantomData
 // };

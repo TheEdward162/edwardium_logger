@@ -50,21 +50,11 @@ impl Target for FileTarget {
 		self.ignore_list.ignore(record)
 	}
 
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> Result<(), Self::Error> {
+	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error> {
 		match self.file.lock() {
-			Err(_) => Err(io::Error::new(
-				io::ErrorKind::Other,
-				"mutex poison error"
-			)),
+			Err(_) => Err(io::Error::new(io::ErrorKind::Other, "mutex poison error")),
 			Ok(mut lock) => {
-				let log_line = super::util::LogLine::new(
-					duration_since_start.into(),
-					record
-				);
+				let log_line = super::util::LogLine::new(duration_since_start.into(), record);
 				writeln!(&mut lock, "{}", log_line)
 			}
 		}
@@ -72,10 +62,7 @@ impl Target for FileTarget {
 
 	fn flush(&self) -> Result<(), Self::Error> {
 		match self.file.lock() {
-			Err(_) => Err(io::Error::new(
-				io::ErrorKind::Other,
-				"mutex poison error"
-			)),
+			Err(_) => Err(io::Error::new(io::ErrorKind::Other, "mutex poison error")),
 			Ok(mut lock) => lock.flush()
 		}
 	}

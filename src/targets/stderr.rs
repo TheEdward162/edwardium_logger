@@ -19,10 +19,7 @@ pub struct StderrTarget {
 	ignore_list: IgnoreList<'static>
 }
 impl StderrTarget {
-	pub const fn new(
-		level: Level,
-		ignore_patterns: IgnoreListPatterns<'static>
-	) -> Self {
+	pub const fn new(level: Level, ignore_patterns: IgnoreListPatterns<'static>) -> Self {
 		StderrTarget {
 			level,
 			ignore_list: IgnoreList::new(ignore_patterns)
@@ -48,13 +45,8 @@ impl Target for StderrTarget {
 		self.ignore_list.ignore(record)
 	}
 
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> io::Result<()> {
-		let log_line =
-			LogLine::new(duration_since_start.into(), record);
+	fn write(&self, duration_since_start: Duration, record: &Record) -> io::Result<()> {
+		let log_line = LogLine::new(duration_since_start.into(), record);
 		writeln!(&mut io::stderr(), "{}", log_line)
 	}
 

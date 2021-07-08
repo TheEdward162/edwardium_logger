@@ -21,11 +21,7 @@ pub trait Target {
 	}
 
 	/// Writes record to the target output.
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> Result<(), Self::Error>;
+	fn write(&self, duration_since_start: Duration, record: &Record) -> Result<(), Self::Error>;
 
 	/// Flushes target output.
 	fn flush(&self) -> Result<(), Self::Error>;
@@ -38,11 +34,7 @@ pub trait Targets {
 	fn max_level(&self) -> LevelFilter;
 
 	/// Writes record to the target outputs.
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> Self::Results;
+	fn write(&self, duration_since_start: Duration, record: &Record) -> Self::Results;
 
 	/// Flushes target outputs.
 	fn flush(&self) -> Self::Results;
@@ -54,11 +46,7 @@ impl<T: Target> Targets for T {
 		Target::level(self).to_level_filter()
 	}
 
-	fn write(
-		&self,
-		duration_since_start: Duration,
-		record: &Record
-	) -> Self::Results {
+	fn write(&self, duration_since_start: Duration, record: &Record) -> Self::Results {
 		if !Target::ignore(self, record) {
 			Target::write(self, duration_since_start, record)
 		} else {
