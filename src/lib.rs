@@ -90,11 +90,6 @@ where
 	#[cfg(feature = "std")]
 	pub fn init_boxed(self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
 		log::set_max_level(max_level);
 
 		let logger = Box::new(self);
@@ -105,12 +100,6 @@ where
 	// TODO: On thumbv6 this won't compile
 	pub fn init_static(&'static self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
-		#[cfg(feature = "std")]
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
 		log::set_max_level(max_level);
 
 		log::set_logger(self)?;
@@ -119,12 +108,6 @@ where
 
 	pub unsafe fn init_static_racy(&'static self) -> Result<(), SetLoggerError> {
 		let max_level = self.targets.max_level();
-		#[cfg(feature = "std")]
-		eprintln!(
-			"Initializing logger with max level of {:?} (static max level: {:?})",
-			max_level,
-			log::STATIC_MAX_LEVEL
-		);
 		log::set_max_level(max_level);
 
 		log::set_logger_racy(self)?;
