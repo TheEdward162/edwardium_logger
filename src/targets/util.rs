@@ -123,10 +123,10 @@ pub mod colored_logline {
 				fn write_fg(&self, f: &mut Formatter) -> Result<(), Error> {
 					match self.0 {
 						Level::Error => color::Red.write_fg(f),
-						Level::Warn => color::Magenta.write_fg(f),
+						Level::Warn => color::Yellow.write_fg(f),
 						Level::Info => color::Green.write_fg(f),
 						Level::Debug => color::Blue.write_fg(f),
-						Level::Trace => color::Black.write_fg(f)
+						Level::Trace => color::Magenta.write_fg(f)
 					}
 				}
 
