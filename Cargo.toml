@@ -1,8 +1,8 @@
 [package]
 name = "edwardium_logger"
-version = "1.2.1"
+version = "1.2.2"
 authors = ["TheEdward162 <theedward162@gmail.com>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/TheEdward162/edwardium_logger"
 documentation = "https://docs.rs/edwardium_logger"
 homepage = "https://crates.io/crates/edwardium_logger"
